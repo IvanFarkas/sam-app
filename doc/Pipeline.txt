@@ -1,0 +1,22 @@
+cd D:\Projects\AWS\Lambda\sam-app
+#sam pipeline init --bootstrap
+
+# Create the dev stage of the pipeline - https://catalog.workshops.aws/complete-aws-sam/en-US/module-4-cicd/module-4-cicd-gh/50-sampipeinit#create-the-dev-stage-of-the-pipeline
+sam pipeline bootstrap --stage dev
+
+# Note: 
+# Pay particular attention to select OpenID Connect (OIDC) for the user permissions provider and GitHub Actions when asked to select an OIDC provider.
+# Note that numbers may be different when choosing from an enumerated list.
+# The full output and answers are provided below as an additional reference.
+
+# OIDC provider: https://token.actions.githubusercontent.com
+# OIDC client ID (sometimes called audience): sts.amazonaws.com
+# GitHub organization: IvanFarkas
+# GitHub repository name: sam-app
+
+
+# Create the prod stage of the pipeline - https://catalog.workshops.aws/complete-aws-sam/en-US/module-4-cicd/module-4-cicd-gh/50-sampipeinit#create-the-prod-stage-of-the-pipeline
+sam pipeline bootstrap --stage prod
+
+# Create GitHub Actions Workflow - https://catalog.workshops.aws/complete-aws-sam/en-US/module-4-cicd/module-4-cicd-gh/50-sampipeinit#create-github-actions-workflow
+sam pipeline init

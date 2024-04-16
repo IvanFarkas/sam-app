@@ -10,21 +10,10 @@ sam remote invoke HelloWorldFunction --stack-name sam-app
 dotnet lambda invoke-function sam-app-HelloWorldFunction-yUDVC0ark7am
 #dotnet lambda invoke-function MyFunction --payload "The Function Payload"
 
-cd D:\Projects\AWS\Lambda\sam-app
-
-sam pipeline init --bootstrap
-# sam pipeline bootstrap
-# sam pipeline init
-
-
-
 sam deploy --guided
 sam deploy -t template.yaml --config-file samconfig.toml
 
 sam delete --stack-name sam-app
-
-
-
 
 Commands you can use next
 =========================
