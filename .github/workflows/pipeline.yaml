@@ -159,7 +159,7 @@ jobs:
 
       # Upload artifacts to testing artifact buckets
       - name: Upload artifacts to testing artifact buckets
-        uses: actions/upload-artifact@v3 # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
         with:
           name: packaged-testing.yaml
           path: packaged-testing.yaml
@@ -184,7 +184,7 @@ jobs:
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3 # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
         with:
           name: packaged-prod.yaml
           path: packaged-prod.yaml
