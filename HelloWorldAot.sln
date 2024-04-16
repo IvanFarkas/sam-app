@@ -7,6 +7,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloWorldAot", "src\HelloW
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "test\Tests.csproj", "{38245CD5-70F2-4619-A9B1-14875173615D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{8F39A444-C6C4-4BFC-9148-F1DBDBAE6F22}"
+	ProjectSection(SolutionItems) = preProject
+		.editor.config = .editor.config
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		.versionize = .versionize
+		CHANGELOG.md = CHANGELOG.md
+		global.json = global.json
+		README.md = README.md
+		omnisharp.json = omnisharp.json
+		samconfig.toml = samconfig.toml
+		template.yaml = template.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

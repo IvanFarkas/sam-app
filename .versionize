@@ -1,0 +1,25 @@
+{
+	"changelogAll": true,
+	"changelog": {
+		"header": "3D HD Soft Project Changelog",
+		"cardServer": "https://3DHDSoft.atlassian.net",
+		"cardIdPattern": "DEV-\\d{4}",
+		"sections": [
+			{
+				"type": "feat",
+				"section": "✨ Features",
+				"hidden": false
+			},
+			{
+				"type": "fix",
+				"section": "🐛 Bug Fixes",
+				"hidden": true
+			},
+			{
+				"type": "perf",
+				"section": "🚀 Performance",
+				"hidden": false
+			}
+		]
+	}
+}

@@ -5,8 +5,8 @@
     "dotnet lambda help",
     "All the command line options for the Lambda command can be specified in this file."
   ],
-  "profile": "",
-  "region": "",
+  "profile": "Sam_Test.Developer",
+  "region": "us-east-1",
   "configuration": "Release",
-  "template": "template.yaml"
+  "template": "./template.yaml"
 }

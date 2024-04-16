@@ -3,7 +3,7 @@ sam local start-api
 
 sam list endpoints --output json
 
-​curl https://bj4qycb2yh.execute-api.us-east-1.amazonaws.com/Prod/hello
+​curl https://fvnvf4e6el.execute-api.us-east-1.amazonaws.com/Prod/hello/
 
 # Invofe Function
 sam remote invoke HelloWorldFunction --stack-name sam-app
