@@ -1,0 +1,41 @@
+sam local invoke
+sam local start-api
+
+sam list endpoints --output json
+
+​curl https://bj4qycb2yh.execute-api.us-east-1.amazonaws.com/Prod/hello
+
+# Invofe Function
+sam remote invoke HelloWorldFunction --stack-name sam-app
+dotnet lambda invoke-function sam-app-HelloWorldFunction-yUDVC0ark7am
+#dotnet lambda invoke-function MyFunction --payload "The Function Payload"
+
+cd D:\Projects\AWS\Lambda\sam-app
+
+sam pipeline init --bootstrap
+# sam pipeline bootstrap
+# sam pipeline init
+
+
+
+sam deploy --guided
+sam deploy -t template.yaml --config-file samconfig.toml
+
+sam delete --stack-name sam-app
+
+
+
+
+Commands you can use next
+=========================
+[*] Create pipeline: cd sam-app-2 && sam pipeline init --bootstrap
+[*] Validate SAM template: cd sam-app-2 && sam validate
+[*] Test Function in the Cloud: cd sam-app-2 && sam sync --stack-name {stack-name} --watch
+
+
+dotnet lambda get-function-config
+dotnet lambda update-function-config
+dotnet lambda deploy-serverless
+dotnet lambda list-serverless
+dotnet lambda list-functions
+dotnet lambda delete-function
