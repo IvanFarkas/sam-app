@@ -15,18 +15,14 @@ env:
   TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-QFRlae8iTmf8
   TESTING_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-dev-p-CloudFormationExecutionRo-cxxL7buV7pEQ
   TESTING_ARTIFACTS_BUCKET: aws-sam-cli-managed-dev-pipeline-r-artifactsbucket-9icwrolvc7vt
-  # If there are functions with "Image" PackageType in your template,
-  # uncomment the line below and add "--image-repository ${TESTING_IMAGE_REPOSITORY}" to
-  # testing "sam package" and "sam deploy" commands.
+  # If there are functions with "Image" PackageType in your template, uncomment the line below and add "--image-repository ${TESTING_IMAGE_REPOSITORY}" to testing "sam package" and "sam deploy" commands.
   # TESTING_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
   TESTING_REGION: us-east-1
   PROD_STACK_NAME: sam-app
   PROD_PIPELINE_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-prod-pipe-PipelineExecutionRole-Uq1Vs2LMRVt1
   PROD_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-prod--CloudFormationExecutionRo-yjqXvV46xcFZ
   PROD_ARTIFACTS_BUCKET: aws-sam-cli-managed-prod-pipeline--artifactsbucket-fqhkbsd0mb3a
-  # If there are functions with "Image" PackageType in your template,
-  # uncomment the line below and add "--image-repository ${PROD_IMAGE_REPOSITORY}" to
-  # prod "sam package" and "sam deploy" commands.
+  # If there are functions with "Image" PackageType in your template, uncomment the line below and add "--image-repository ${PROD_IMAGE_REPOSITORY}" to prod "sam package" and "sam deploy" commands.
   # PROD_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
   PROD_REGION: us-east-1
 
@@ -38,21 +34,32 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: |
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Tests
+      - name: Tests
+        run: |
           # trigger the tests here
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Setup SAM
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2 # https://github.com/aws-actions/setup-sam
         with:
           use-installer: true
 
+      # Assume the testing pipeline user role
       - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4 # https://github.com/aws-actions/configure-aws-credentials
         with:
           aws-region: ${{ env.TESTING_REGION }}
           role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
@@ -60,6 +67,7 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
+      # Delete feature branch stack
       - name: Delete feature branch stack
         env:
           FEATURE_BRANCH_NAME: ${{ github.event.ref }}
@@ -70,22 +78,30 @@ jobs:
             --no-prompts
 
   build-and-deploy-feature:
-    # this stage is triggered only for feature branches (feature*),
-    # which will build the stack and deploy to a stack named with branch name.
+    # this stage is triggered only for feature branches (feature*), which will build the stack and deploy to a stack named with branch name.
     # https://github.com/actions/setup-python
     # https://github.com/aws-actions/configure-aws-credentials#notice-node12-deprecation-warning
     if: startsWith(github.ref, 'refs/heads/feature')
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Setup SAM
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2 # https://github.com/aws-actions/setup-sam
         with:
           use-installer: true
-      - run: sam build --template ${SAM_TEMPLATE} --use-container
 
+      # sam build
+      - name: sam build
+        run: sam build --template ${SAM_TEMPLATE} --use-container --mount-with WRITE
+
+      # Assume the testing pipeline user role
       - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4 # https://github.com/aws-actions/configure-aws-credentials
         with:
           aws-region: ${{ env.TESTING_REGION }}
           role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
@@ -93,6 +109,7 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
+      # Deploy to feature stack in the testing account
       - name: Deploy to feature stack in the testing account
         shell: bash
         run: |
@@ -108,16 +125,23 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Setup SAM
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2 # https://github.com/aws-actions/setup-sam
         with:
           use-installer: true
 
+      # Build resources
       - name: Build resources
-        run: sam build --template ${SAM_TEMPLATE} --use-container
+        run: sam build --template ${SAM_TEMPLATE} --use-container --mount-with WRITE
 
+      # Assume the testing pipeline user role
       - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4 # https://github.com/aws-actions/configure-aws-credentials
         with:
           aws-region: ${{ env.TESTING_REGION }}
           role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
@@ -125,6 +149,7 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
+      # Upload artifacts to testing artifact buckets
       - name: Upload artifacts to testing artifact buckets
         run: |
           sam package \
@@ -132,13 +157,16 @@ jobs:
             --region ${TESTING_REGION} \
             --output-template-file packaged-testing.yaml
 
-      - uses: actions/upload-artifact@v3
+      # Upload artifacts to testing artifact buckets
+      - name: Upload artifacts to testing artifact buckets
+        uses: actions/upload-artifact@v3 # https://github.com/actions/upload-artifact
         with:
           name: packaged-testing.yaml
           path: packaged-testing.yaml
 
+      # Assume the prod pipeline user role
       - name: Assume the prod pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4 # https://github.com/aws-actions/configure-aws-credentials
         with:
           aws-region: ${{ env.PROD_REGION }}
           role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
@@ -146,6 +174,7 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
+      # Upload artifacts to production artifact buckets
       - name: Upload artifacts to production artifact buckets
         run: |
           sam package \
@@ -153,7 +182,9 @@ jobs:
             --region ${PROD_REGION} \
             --output-template-file packaged-prod.yaml
 
-      - uses: actions/upload-artifact@v3
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3 # https://github.com/actions/upload-artifact
         with:
           name: packaged-prod.yaml
           path: packaged-prod.yaml
@@ -163,16 +194,25 @@ jobs:
     needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Setup SAM
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2 # https://github.com/aws-actions/setup-sam
         with:
           use-installer: true
-      - uses: actions/download-artifact@v3
+
+      # Download artifact
+      - name: Download artifact
+        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
         with:
           name: packaged-testing.yaml
 
+      # Assume the testing pipeline user role
       - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4 # https://github.com/aws-actions/configure-aws-credentials
         with:
           aws-region: ${{ env.TESTING_REGION }}
           role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
@@ -180,6 +220,7 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
+      # Deploy to testing account
       - name: Deploy to testing account
         run: |
           sam deploy --stack-name ${TESTING_STACK_NAME} \
@@ -195,8 +236,13 @@ jobs:
     needs: [deploy-testing]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: |
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Integration tests
+      - name: Integration tests
+        run: |
           # trigger the integration tests here
 
   deploy-prod:
@@ -207,16 +253,25 @@ jobs:
     # https://docs.github.com/en/actions/reference/environments
     # environment: <configured-environment>
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      # Setup SAM
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2 # https://github.com/aws-actions/setup-sam
         with:
           use-installer: true
-      - uses: actions/download-artifact@v3
+
+      # Download artifact
+      - name: Download artifact
+        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
         with:
           name: packaged-prod.yaml
 
+      # Assume the prod pipeline user role
       - name: Assume the prod pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4 # https://github.com/aws-actions/configure-aws-credentials
         with:
           aws-region: ${{ env.PROD_REGION }}
           role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
@@ -224,6 +279,7 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
+      # Deploy to production account
       - name: Deploy to production account
         run: |
           sam deploy --stack-name ${PROD_STACK_NAME} \
