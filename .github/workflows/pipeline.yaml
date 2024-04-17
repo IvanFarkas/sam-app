@@ -39,7 +39,8 @@ env:
   BRANCH_NAME: ${{ github.ref }}} # The fully-formed ref of the branch or tag that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
   TAG_NAME: ${{ github.event.ref }}} # The full git ref that was pushed. Example: refs/heads/main # - https://docs.github.com/en/rest/using-the-rest-api/github-event-types?apiVersion=2022-11-28#event-payload-object-for-pushevent
   # Conditions
-  IsPush: ${{ github.event_name }} == 'push' # The name of the event that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+  #IsPush: ${{ github.event_name }} == 'push' # The name of the event that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+  IsPush: ${{ github.event_name == 'push' }} # The name of the event that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
   IsDelete: ${{ github.event_name }} == 'delete'
   IsFeatureBranch: ${{ startsWith(github.event.ref, 'feature') }}
   IsMainBranch: ${{ github.ref }} == 'refs/heads/main'
