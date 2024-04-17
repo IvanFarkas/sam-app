@@ -20,6 +20,7 @@ on:
 # Env
 env:
   SAM_TEMPLATE: template.yaml
+
   # Testing (dev)
   TESTING_STACK_NAME: sam-app-dev
   TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-QFRlae8iTmf8
@@ -28,6 +29,7 @@ env:
   # If there are functions with "Image" PackageType in your template, uncomment the line below and add "--image-repository ${TESTING_IMAGE_REPOSITORY}" to testing "sam package" and "sam deploy" commands.
   # TESTING_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
   TESTING_REGION: us-east-1
+
   # Prod (prod)
   PROD_STACK_NAME: sam-app-prod
   PROD_PIPELINE_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-prod-pipe-PipelineExecutionRole-Uq1Vs2LMRVt1
@@ -38,6 +40,7 @@ env:
   PROD_REGION: us-east-1
   BRANCH_NAME: ${{ github.ref }}} # The fully-formed ref of the branch or tag that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
   TAG_NAME: ${{ github.event.ref }}} # The full git ref that was pushed. Example: refs/heads/main # - https://docs.github.com/en/rest/using-the-rest-api/github-event-types?apiVersion=2022-11-28#event-payload-object-for-pushevent
+
   # Conditions
   IsPush: ${{ github.event_name }} == 'push' # The name of the event that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
   IsDelete: ${{ github.event_name }} == 'delete'
