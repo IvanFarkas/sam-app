@@ -59,7 +59,7 @@ jobs:
     name: Test
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    if: ${{ fromJSON(env.IsPush) }}
+    if: github.event_name == 'push'
     steps:
       # Checkout
       - name: Checkout
