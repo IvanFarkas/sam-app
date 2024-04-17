@@ -20,3 +20,13 @@ sam pipeline bootstrap --stage prod
 
 # Create GitHub Actions Workflow - https://catalog.workshops.aws/complete-aws-sam/en-US/module-4-cicd/module-4-cicd-gh/50-sampipeinit#create-github-actions-workflow
 sam pipeline init
+
+# Test the application in dev and prod environments - https://catalog.workshops.aws/complete-aws-sam/en-US/module-4-cicd/module-4-cicd-gh/60-inspect#test-the-application-in-dev-and-prod-environments
+DEV_ENDPOINT=$(aws cloudformation describe-stacks --stack-name sam-app-dev | jq -r '.Stacks[].Outputs[].OutputValue | select(startswith("https://"))')
+PROD_ENDPOINT=$(aws cloudformation describe-stacks --stack-name sam-app-prod | jq -r '.Stacks[].Outputs[].OutputValue | select(startswith("https://"))')
+
+echo "Dev endpoint: $DEV_ENDPOINT"
+echo "Prod endpoint: $PROD_ENDPOINT"
+
+curl -s $DEV_ENDPOINT
+curl -s $PROD_ENDPOINT

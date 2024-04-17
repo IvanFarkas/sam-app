@@ -1,24 +1,37 @@
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+# Pipeline
 name: Pipeline
 
+# On
+# Events triggers - https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
 on:
-  push:
-    branches:
-      - 'main'
-      - 'feature**'
-  delete:
-    branches:
-      - 'feature**'
+  # Push
+  push: # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push
+    branches: [ main, develop, feature** ] # Run the workflow when pushing to the main, develop and any feature branches
+    # paths: # Run the workflow when pushing changes under the src, test directory
+    #   - src/**
+    #   - test/**
 
+  delete: # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#delete
+    branches: [ feature** ] # Runs the workflow when someone deletes a Git reference (Git branch or tag) in the workflow's repository from any feature branches.
+
+# Env
 env:
   SAM_TEMPLATE: template.yaml
-  TESTING_STACK_NAME: sam-app
+  
+  # Testing (dev)
+  TESTING_STACK_NAME: sam-app-dev
   TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-QFRlae8iTmf8
   TESTING_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-dev-p-CloudFormationExecutionRo-cxxL7buV7pEQ
   TESTING_ARTIFACTS_BUCKET: aws-sam-cli-managed-dev-pipeline-r-artifactsbucket-9icwrolvc7vt
   # If there are functions with "Image" PackageType in your template, uncomment the line below and add "--image-repository ${TESTING_IMAGE_REPOSITORY}" to testing "sam package" and "sam deploy" commands.
   # TESTING_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
   TESTING_REGION: us-east-1
-  PROD_STACK_NAME: sam-app
+
+  # Prod (prod)
+  PROD_STACK_NAME: sam-app-prod
   PROD_PIPELINE_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-prod-pipe-PipelineExecutionRole-Uq1Vs2LMRVt1
   PROD_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::533267171025:role/aws-sam-cli-managed-prod--CloudFormationExecutionRo-yjqXvV46xcFZ
   PROD_ARTIFACTS_BUCKET: aws-sam-cli-managed-prod-pipeline--artifactsbucket-fqhkbsd0mb3a
@@ -26,13 +39,28 @@ env:
   # PROD_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
   PROD_REGION: us-east-1
 
+  BRANCH_NAME: ${{ github.ref }}} # The fully-formed ref of the branch or tag that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+  TAG_NAME: ${{ github.event.ref }}} # The full git ref that was pushed. Example: refs/heads/main # - https://docs.github.com/en/rest/using-the-rest-api/github-event-types?apiVersion=2022-11-28#event-payload-object-for-pushevent
+
+  # Conditions
+  IsPush: ${{ github.event_name }} == 'push' # The name of the event that triggered the workflow run. - https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+  IsDelete: ${{ github.event_name }} == 'delete'
+  IsFeatureBranch: ${{ startsWith(github.event.ref, 'feature') }}
+  IsMainBranch: ${{ github.ref }} == 'refs/heads/main'
+
+# Permissions
 permissions:
   id-token: write
   contents: read
+
+# Jobs
 jobs:
+  # Test
   test:
-    if: github.event_name == 'push'
+    name: Test
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    if: fromJSON(env.IsPush)
     steps:
       # Checkout
       - name: Checkout
@@ -43,9 +71,12 @@ jobs:
         run: |
           # trigger the tests here
 
+  # Delete Feature
   delete-feature:
-    if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
+    name: Delete Feature
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    if: fromJSON(env.IsFeatureBranch) && fromJSON(env.IsDelete)
     steps:
       # Checkout
       - name: Checkout
@@ -70,20 +101,23 @@ jobs:
       # Delete feature branch stack
       - name: Delete feature branch stack
         env:
-          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
+          FEATURE_BRANCH_NAME: ${{ env.TAG_NAME }}
         run: |
           sam delete \
             --stack-name $(echo ${FEATURE_BRANCH_NAME##*/} | tr -cd '[a-zA-Z0-9-]') \
             --region ${TESTING_REGION} \
             --no-prompts
 
+  # Build and Deploy Feature
   build-and-deploy-feature:
-    # this stage is triggered only for feature branches (feature*), which will build the stack and deploy to a stack named with branch name.
+    # This job is triggered only for feature branches (feature*), which will build the stack and deploy to a stack named with branch name.
     # https://github.com/actions/setup-python
     # https://github.com/aws-actions/configure-aws-credentials#notice-node12-deprecation-warning
-    if: startsWith(github.ref, 'refs/heads/feature')
-    needs: [test]
+    name: Build and Deploy Feature
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: [test]
+    if: fromJSON(env.IsFeatureBranch)
     steps:
       # Checkout
       - name: Checkout
@@ -120,10 +154,13 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE}
 
+  # Build and Package
   build-and-package:
-    if: github.ref == 'refs/heads/main'
-    needs: [test]
+    name: Build and Package
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: [test]
+    if: fromJSON(env.IsMainBranch)
     steps:
       # Checkout
       - name: Checkout
@@ -189,10 +226,13 @@ jobs:
           name: packaged-prod.yaml
           path: packaged-prod.yaml
 
+  # Deploy Testing (dev)
   deploy-testing:
-    if: github.ref == 'refs/heads/main'
-    needs: [build-and-package]
+    name: Deploy Testing (dev)
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: [build-and-package]
+    if: fromJSON(env.IsMainBranch)
     steps:
       # Checkout
       - name: Checkout
@@ -231,10 +271,13 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE}
 
+  # Integration Test
   integration-test:
-    if: github.ref == 'refs/heads/main'
-    needs: [deploy-testing]
+    name: Integration Test
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: [deploy-testing]
+    if: fromJSON(env.IsMainBranch)
     steps:
       # Checkout
       - name: Checkout
@@ -245,10 +288,13 @@ jobs:
         run: |
           # trigger the integration tests here
 
+  # Deploy Prod (prod)
   deploy-prod:
-    if: github.ref == 'refs/heads/main'
-    needs: [integration-test]
+    name: Deploy Prod (prod)
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: [integration-test]
+    if: fromJSON(env.IsMainBranch)
     # Configure GitHub Action Environment to have a manual approval step before deployment to production
     # https://docs.github.com/en/actions/reference/environments
     # environment: <configured-environment>
