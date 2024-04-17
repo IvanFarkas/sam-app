@@ -30,3 +30,5 @@ echo "Prod endpoint: $PROD_ENDPOINT"
 
 curl -s $DEV_ENDPOINT
 curl -s $PROD_ENDPOINT
+
+https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
